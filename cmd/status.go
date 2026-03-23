@@ -14,6 +14,10 @@ var StatusCmd = &cobra.Command{
 	Long:  `Display the current MySQL connection status.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		connected, dbName := db.GetStatus()
+		if !connected {
+			_ = db.LoadAndConnect()
+			connected, dbName = db.GetStatus()
+		}
 		if connected {
 			cfg := db.GetConfig()
 			fmt.Println("Connection Status: Connected")

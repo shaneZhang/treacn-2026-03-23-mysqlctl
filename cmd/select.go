@@ -35,7 +35,7 @@ var SelectCmd = &cobra.Command{
 			columns = selectColumns
 		}
 
-		sqlQuery := fmt.Sprintf("SELECT %s FROM `%s`", columns, selectTable)
+		sqlQuery := fmt.Sprintf("SELECT %s FROM %s", columns, escapeIdentifier(selectTable))
 
 		if selectWhere != "" {
 			sqlQuery += fmt.Sprintf(" WHERE %s", selectWhere)

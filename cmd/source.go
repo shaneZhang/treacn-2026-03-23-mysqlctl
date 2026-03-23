@@ -1,10 +1,10 @@
 package cmd
 
 import (
-	"bufio"
 	"fmt"
 	"os"
 	"strings"
+	"unicode"
 
 	"github.com/spf13/cobra"
 
@@ -28,45 +28,12 @@ var SourceCmd = &cobra.Command{
 			filePath = args[0]
 		}
 
-		file, err := os.Open(filePath)
+		content, err := os.ReadFile(filePath)
 		if err != nil {
-			return fmt.Errorf("failed to open file: %w", err)
-		}
-		defer file.Close()
-
-		scanner := bufio.NewScanner(file)
-		var statements []string
-		var currentStatement strings.Builder
-
-		for scanner.Scan() {
-			line := scanner.Text()
-
-			if strings.HasPrefix(strings.TrimSpace(line), "--") {
-				continue
-			}
-
-			currentStatement.WriteString(line)
-			currentStatement.WriteString("\n")
-
-			if strings.Contains(line, ";") {
-				stmt := strings.TrimSpace(currentStatement.String())
-				if stmt != "" && stmt != ";" {
-					statements = append(statements, stmt)
-				}
-				currentStatement.Reset()
-			}
+			return fmt.Errorf("failed to read file: %w", err)
 		}
 
-		if err := scanner.Err(); err != nil {
-			return fmt.Errorf("error reading file: %w", err)
-		}
-
-		if currentStatement.Len() > 0 {
-			stmt := strings.TrimSpace(currentStatement.String())
-			if stmt != "" {
-				statements = append(statements, stmt)
-			}
-		}
+		statements := splitSQLStatements(string(content))
 
 		fmt.Printf("Executing %d statements...\n", len(statements))
 
@@ -74,7 +41,7 @@ var SourceCmd = &cobra.Command{
 			_, err := db.GetDB().Exec(stmt)
 			if err != nil {
 				fmt.Printf("Error executing statement %d: %v\n", i+1, err)
-				fmt.Printf("Statement: %s\n", stmt)
+				fmt.Printf("Statement: %.100s\n", stmt)
 				return fmt.Errorf("failed to execute statement: %w", err)
 			}
 		}
@@ -82,6 +49,110 @@ var SourceCmd = &cobra.Command{
 		fmt.Println("All statements executed successfully")
 		return nil
 	},
+}
+
+func splitSQLStatements(sql string) []string {
+	var statements []string
+	var currentStmt strings.Builder
+	var inString bool
+	var inComment bool
+	var stringChar rune
+	var delimiter string = ";"
+
+	lines := strings.Split(sql, "\n")
+
+	for _, line := range lines {
+		trimmedLine := strings.TrimSpace(line)
+
+		if strings.HasPrefix(trimmedLine, "--") || strings.HasPrefix(trimmedLine, "#") {
+			continue
+		}
+
+		if strings.HasPrefix(strings.ToUpper(trimmedLine), "DELIMITER") {
+			parts := strings.Fields(trimmedLine)
+			if len(parts) >= 2 {
+				delimiter = parts[1]
+			}
+			continue
+		}
+
+		var inMultiLineComment bool
+		i := 0
+		runes := []rune(line)
+		lineLen := len(runes)
+
+		for i < lineLen {
+			r := runes[i]
+
+			if !inString && !inComment && !inMultiLineComment && i+1 < lineLen && runes[i] == '/' && runes[i+1] == '*' {
+				inMultiLineComment = true
+				i += 2
+				continue
+			}
+
+			if inMultiLineComment && i+1 < lineLen && runes[i] == '*' && runes[i+1] == '/' {
+				inMultiLineComment = false
+				i += 2
+				continue
+			}
+
+			if inMultiLineComment {
+				i++
+				continue
+			}
+
+			if !inString && i+1 < lineLen && runes[i] == '/' && runes[i+1] == '/' {
+				break
+			}
+
+			if (r == '\'' || r == '"') && !inComment {
+				if !inString {
+					inString = true
+					stringChar = r
+				} else if r == stringChar {
+					if i+1 >= lineLen || runes[i+1] != stringChar {
+						inString = false
+					} else {
+						i++
+					}
+				}
+			}
+
+			if !inString && !inComment {
+				delimiterFound := false
+				if i+len(delimiter) <= lineLen {
+					if string(runes[i:i+len(delimiter)]) == delimiter {
+						stmt := strings.TrimSpace(currentStmt.String())
+						if stmt != "" {
+							statements = append(statements, stmt)
+						}
+						currentStmt.Reset()
+						i += len(delimiter)
+						delimiterFound = true
+					}
+				}
+				if delimiterFound {
+					continue
+				}
+			}
+
+			if !inComment || !unicode.IsSpace(r) {
+				currentStmt.WriteRune(r)
+			}
+			i++
+		}
+
+		if currentStmt.Len() > 0 {
+			currentStmt.WriteRune('\n')
+		}
+	}
+
+	stmt := strings.TrimSpace(currentStmt.String())
+	if stmt != "" {
+		statements = append(statements, stmt)
+	}
+
+	return statements
 }
 
 func init() {

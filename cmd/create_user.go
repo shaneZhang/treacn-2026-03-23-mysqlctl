@@ -31,11 +31,11 @@ var CreateUserCmd = &cobra.Command{
 
 		var sqlQuery string
 		if createUserPassword != "" {
-			sqlQuery = fmt.Sprintf("CREATE USER '%s'@'%s' IDENTIFIED BY '%s'",
-				username, host, createUserPassword)
+			sqlQuery = fmt.Sprintf("CREATE USER %s@%s IDENTIFIED BY %s",
+				escapeValue(username), escapeValue(host), escapeValue(createUserPassword))
 		} else {
-			sqlQuery = fmt.Sprintf("CREATE USER '%s'@'%s'",
-				username, host)
+			sqlQuery = fmt.Sprintf("CREATE USER %s@%s",
+				escapeValue(username), escapeValue(host))
 		}
 
 		_, err := db.GetDB().Exec(sqlQuery)
@@ -49,6 +49,6 @@ var CreateUserCmd = &cobra.Command{
 }
 
 func init() {
-	CreateUserCmd.Flags().StringVarP(&createUserHost, "host", "h", "%", "User host (default: %)")
+	CreateUserCmd.Flags().StringVarP(&createUserHost, "host", "H", "%", "User host (default: %)")
 	CreateUserCmd.Flags().StringVarP(&createUserPassword, "password", "p", "", "User password")
 }

@@ -19,9 +19,9 @@ var UseDatabaseCmd = &cobra.Command{
 		}
 
 		dbName := args[0]
-		_, err := db.GetDB().Exec(fmt.Sprintf("USE `%s`", dbName))
+		err := db.UpdateDatabase(dbName)
 		if err != nil {
-			return fmt.Errorf("failed to use database: %w", err)
+			return err
 		}
 
 		fmt.Printf("Switched to database: %s\n", dbName)

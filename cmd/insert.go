@@ -29,9 +29,9 @@ var InsertCmd = &cobra.Command{
 
 		var sqlQuery string
 		if insertSet != "" {
-			sqlQuery = fmt.Sprintf("INSERT INTO `%s` SET %s", insertTable, insertSet)
+			sqlQuery = fmt.Sprintf("INSERT INTO %s SET %s", escapeIdentifier(insertTable), insertSet)
 		} else if insertValues != "" {
-			sqlQuery = fmt.Sprintf("INSERT INTO `%s` VALUES (%s)", insertTable, insertValues)
+			sqlQuery = fmt.Sprintf("INSERT INTO %s VALUES (%s)", escapeIdentifier(insertTable), insertValues)
 		} else {
 			return fmt.Errorf("either --values or --set must be specified")
 		}

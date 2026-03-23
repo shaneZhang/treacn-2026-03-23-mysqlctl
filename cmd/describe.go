@@ -19,7 +19,7 @@ var DescribeTableCmd = &cobra.Command{
 		}
 
 		tableName := args[0]
-		rows, err := db.GetDB().Query(fmt.Sprintf("DESCRIBE `%s`", tableName))
+		rows, err := db.GetDB().Query(fmt.Sprintf("DESCRIBE %s", escapeIdentifier(tableName)))
 		if err != nil {
 			return fmt.Errorf("failed to describe table: %w", err)
 		}

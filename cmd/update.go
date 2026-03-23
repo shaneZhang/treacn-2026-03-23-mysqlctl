@@ -31,7 +31,7 @@ var UpdateCmd = &cobra.Command{
 			return fmt.Errorf("set clause is required (use --set)")
 		}
 
-		sqlQuery := fmt.Sprintf("UPDATE `%s` SET %s", updateTable, updateSet)
+		sqlQuery := fmt.Sprintf("UPDATE %s SET %s", escapeIdentifier(updateTable), updateSet)
 
 		if updateWhere != "" {
 			sqlQuery += fmt.Sprintf(" WHERE %s", updateWhere)
