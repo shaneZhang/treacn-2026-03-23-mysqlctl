@@ -19,6 +19,13 @@ var DropDatabaseCmd = &cobra.Command{
 		}
 
 		dbName := args[0]
+
+		// Check if we're currently using this database, if so clear it
+		_, currentDb := db.GetStatus()
+		if currentDb == dbName {
+			db.UpdateDatabase("")
+		}
+
 		_, err := db.GetDB().Exec(fmt.Sprintf("DROP DATABASE `%s`", dbName))
 		if err != nil {
 			return fmt.Errorf("failed to drop database: %w", err)

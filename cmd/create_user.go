@@ -29,18 +29,27 @@ var CreateUserCmd = &cobra.Command{
 			host = "%"
 		}
 
-		var sqlQuery string
-		if createUserPassword != "" {
-			sqlQuery = fmt.Sprintf("CREATE USER '%s'@'%s' IDENTIFIED BY '%s'",
-				username, host, createUserPassword)
-		} else {
-			sqlQuery = fmt.Sprintf("CREATE USER '%s'@'%s'",
-				username, host)
+		// Validate username and host to prevent SQL injection
+		if !isValidIdentifier(username) {
+			return fmt.Errorf("invalid username: contains potentially dangerous characters")
+		}
+		if !isValidHost(host) {
+			return fmt.Errorf("invalid host: contains potentially dangerous characters")
 		}
 
-		_, err := db.GetDB().Exec(sqlQuery)
-		if err != nil {
-			return fmt.Errorf("failed to create user: %w", err)
+		var sqlQuery string
+		if createUserPassword != "" {
+			sqlQuery = fmt.Sprintf("CREATE USER '%s'@'%s' IDENTIFIED BY ?", username, host)
+			_, err := db.GetDB().Exec(sqlQuery, createUserPassword)
+			if err != nil {
+				return fmt.Errorf("failed to create user: %w", err)
+			}
+		} else {
+			sqlQuery = fmt.Sprintf("CREATE USER '%s'@'%s'", username, host)
+			_, err := db.GetDB().Exec(sqlQuery)
+			if err != nil {
+				return fmt.Errorf("failed to create user: %w", err)
+			}
 		}
 
 		fmt.Printf("User '%s'@'%s' created successfully\n", username, host)
@@ -49,6 +58,6 @@ var CreateUserCmd = &cobra.Command{
 }
 
 func init() {
-	CreateUserCmd.Flags().StringVarP(&createUserHost, "host", "h", "%", "User host (default: %)")
+	CreateUserCmd.Flags().StringVar(&createUserHost, "host", "%", "User host (default: %)")
 	CreateUserCmd.Flags().StringVarP(&createUserPassword, "password", "p", "", "User password")
 }

@@ -30,8 +30,17 @@ var SelectCmd = &cobra.Command{
 			return fmt.Errorf("table name is required (use --table)")
 		}
 
+		// Validate table name to prevent SQL injection
+		if !isValidIdentifier(selectTable) {
+			return fmt.Errorf("invalid table name: contains potentially dangerous characters")
+		}
+
 		columns := "*"
 		if selectColumns != "" {
+			// Validate column names
+			if !isValidColumnList(selectColumns) {
+				return fmt.Errorf("invalid column list: contains potentially dangerous characters")
+			}
 			columns = selectColumns
 		}
 

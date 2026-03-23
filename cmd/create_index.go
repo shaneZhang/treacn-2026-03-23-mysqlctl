@@ -10,8 +10,8 @@ import (
 
 var (
 	createIndexTable  string
-	createIndexName  string
-	createIndexCols  string
+	createIndexName   string
+	createIndexCols   string
 	createIndexUnique bool
 )
 
@@ -31,9 +31,19 @@ var CreateIndexCmd = &cobra.Command{
 			return fmt.Errorf("column(s) are required (use --columns)")
 		}
 
+		// Validate identifiers to prevent SQL injection
+		if !isValidIdentifier(createIndexTable) {
+			return fmt.Errorf("invalid table name: contains potentially dangerous characters")
+		}
+		if !isValidColumnList(createIndexCols) {
+			return fmt.Errorf("invalid column list: contains potentially dangerous characters")
+		}
+
 		indexName := createIndexName
 		if indexName == "" {
 			indexName = fmt.Sprintf("idx_%s", createIndexCols)
+		} else if !isValidIdentifier(indexName) {
+			return fmt.Errorf("invalid index name: contains potentially dangerous characters")
 		}
 
 		var sqlQuery string

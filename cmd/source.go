@@ -37,17 +37,47 @@ var SourceCmd = &cobra.Command{
 		scanner := bufio.NewScanner(file)
 		var statements []string
 		var currentStatement strings.Builder
+		inMultiLineComment := false
 
 		for scanner.Scan() {
 			line := scanner.Text()
+			trimmedLine := strings.TrimSpace(line)
 
-			if strings.HasPrefix(strings.TrimSpace(line), "--") {
+			// Skip empty lines
+			if trimmedLine == "" {
+				continue
+			}
+
+			// Handle multi-line comments /* */
+			if inMultiLineComment {
+				if idx := strings.Index(trimmedLine, "*/"); idx != -1 {
+					inMultiLineComment = false
+					line = trimmedLine[idx+2:]
+					trimmedLine = strings.TrimSpace(line)
+				} else {
+					continue
+				}
+			}
+
+			if strings.HasPrefix(trimmedLine, "/*") {
+				if idx := strings.Index(trimmedLine, "*/"); idx != -1 {
+					line = trimmedLine[idx+2:]
+					trimmedLine = strings.TrimSpace(line)
+				} else {
+					inMultiLineComment = true
+					continue
+				}
+			}
+
+			// Skip single-line comments
+			if strings.HasPrefix(trimmedLine, "--") || strings.HasPrefix(trimmedLine, "#") {
 				continue
 			}
 
 			currentStatement.WriteString(line)
 			currentStatement.WriteString("\n")
 
+			// Check for statement terminator
 			if strings.Contains(line, ";") {
 				stmt := strings.TrimSpace(currentStatement.String())
 				if stmt != "" && stmt != ";" {
@@ -61,6 +91,7 @@ var SourceCmd = &cobra.Command{
 			return fmt.Errorf("error reading file: %w", err)
 		}
 
+		// Handle any remaining statement without semicolon
 		if currentStatement.Len() > 0 {
 			stmt := strings.TrimSpace(currentStatement.String())
 			if stmt != "" {

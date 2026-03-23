@@ -30,6 +30,11 @@ var DeleteCmd = &cobra.Command{
 			return fmt.Errorf("where clause is required (use --where)")
 		}
 
+		// Validate table name to prevent SQL injection
+		if !isValidIdentifier(deleteTable) {
+			return fmt.Errorf("invalid table name: contains potentially dangerous characters")
+		}
+
 		sqlQuery := fmt.Sprintf("DELETE FROM `%s` WHERE %s", deleteTable, deleteWhere)
 
 		result, err := db.GetDB().Exec(sqlQuery)
