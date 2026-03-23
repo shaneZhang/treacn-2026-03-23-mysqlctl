@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/spf13/cobra"
 
@@ -19,11 +20,15 @@ var UseDatabaseCmd = &cobra.Command{
 		}
 
 		dbName := args[0]
-		_, err := db.GetDB().Exec(fmt.Sprintf("USE `%s`", dbName))
+		_, err := db.GetDB().Exec(fmt.Sprintf("USE %s", escapeIdentifier(dbName)))
 		if err != nil {
 			return fmt.Errorf("failed to use database: %w", err)
 		}
 
+		db.SetCurrentDatabase(dbName)
+		if err := db.SaveConfig(); err != nil {
+			fmt.Fprintf(os.Stderr, "Warning: failed to save config: %v\n", err)
+		}
 		fmt.Printf("Switched to database: %s\n", dbName)
 		return nil
 	},

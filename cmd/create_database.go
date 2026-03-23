@@ -19,7 +19,7 @@ var CreateDatabaseCmd = &cobra.Command{
 		}
 
 		dbName := args[0]
-		_, err := db.GetDB().Exec(fmt.Sprintf("CREATE DATABASE `%s`", dbName))
+		_, err := db.GetDB().Exec(fmt.Sprintf("CREATE DATABASE %s", escapeIdentifier(dbName)))
 		if err != nil {
 			return fmt.Errorf("failed to create database: %w", err)
 		}

@@ -33,6 +33,9 @@ var ShowUsersCmd = &cobra.Command{
 			}
 			fmt.Printf("%s@%s\n", user, host)
 		}
+		if err := rows.Err(); err != nil {
+			return fmt.Errorf("error iterating users: %w", err)
+		}
 		return nil
 	},
 }

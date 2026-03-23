@@ -34,38 +34,9 @@ var SourceCmd = &cobra.Command{
 		}
 		defer file.Close()
 
-		scanner := bufio.NewScanner(file)
-		var statements []string
-		var currentStatement strings.Builder
-
-		for scanner.Scan() {
-			line := scanner.Text()
-
-			if strings.HasPrefix(strings.TrimSpace(line), "--") {
-				continue
-			}
-
-			currentStatement.WriteString(line)
-			currentStatement.WriteString("\n")
-
-			if strings.Contains(line, ";") {
-				stmt := strings.TrimSpace(currentStatement.String())
-				if stmt != "" && stmt != ";" {
-					statements = append(statements, stmt)
-				}
-				currentStatement.Reset()
-			}
-		}
-
-		if err := scanner.Err(); err != nil {
-			return fmt.Errorf("error reading file: %w", err)
-		}
-
-		if currentStatement.Len() > 0 {
-			stmt := strings.TrimSpace(currentStatement.String())
-			if stmt != "" {
-				statements = append(statements, stmt)
-			}
+		statements, err := parseSQLFile(file)
+		if err != nil {
+			return fmt.Errorf("error parsing SQL file: %w", err)
 		}
 
 		fmt.Printf("Executing %d statements...\n", len(statements))
@@ -86,4 +57,53 @@ var SourceCmd = &cobra.Command{
 
 func init() {
 	SourceCmd.Flags().StringVarP(&sourceFile, "file", "f", "", "SQL file to execute")
+}
+
+func parseSQLFile(file *os.File) ([]string, error) {
+	var statements []string
+	var currentStatement strings.Builder
+	delimiter := ";"
+
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		line := scanner.Text()
+		trimmedLine := strings.TrimSpace(line)
+
+		if strings.HasPrefix(trimmedLine, "--") || trimmedLine == "" {
+			continue
+		}
+
+		if strings.HasPrefix(strings.ToUpper(trimmedLine), "DELIMITER ") {
+			newDelimiter := strings.TrimSpace(trimmedLine[10:])
+			if newDelimiter != "" {
+				delimiter = newDelimiter
+			}
+			continue
+		}
+
+		currentStatement.WriteString(line)
+		currentStatement.WriteString("\n")
+
+		stmt := currentStatement.String()
+		if strings.HasSuffix(strings.TrimSpace(stmt), delimiter) {
+			stmt = strings.TrimSpace(strings.TrimSuffix(strings.TrimSpace(stmt), delimiter))
+			if stmt != "" {
+				statements = append(statements, stmt)
+			}
+			currentStatement.Reset()
+		}
+	}
+
+	if err := scanner.Err(); err != nil {
+		return nil, err
+	}
+
+	if currentStatement.Len() > 0 {
+		stmt := strings.TrimSpace(currentStatement.String())
+		if stmt != "" {
+			statements = append(statements, stmt)
+		}
+	}
+
+	return statements, nil
 }

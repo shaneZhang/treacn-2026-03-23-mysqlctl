@@ -9,11 +9,11 @@ import (
 )
 
 var (
-	grantUser   string
-	grantHost   string
-	grantPriv   string
+	grantUser     string
+	grantHost     string
+	grantPriv     string
 	grantDatabase string
-	grantTable  string
+	grantTable    string
 )
 
 var GrantCmd = &cobra.Command{
@@ -38,12 +38,18 @@ var GrantCmd = &cobra.Command{
 		}
 
 		target := grantDatabase
+		if target == "" {
+			target = "*"
+		}
 		if grantTable != "" {
+			if target == "*" {
+				return fmt.Errorf("database must be specified when using --table")
+			}
 			target = fmt.Sprintf("%s.%s", grantDatabase, grantTable)
 		}
 
-		sqlQuery := fmt.Sprintf("GRANT %s ON %s TO '%s'@'%s'",
-			grantPriv, target, grantUser, host)
+		sqlQuery := fmt.Sprintf("GRANT %s ON %s TO %s@%s",
+			grantPriv, target, escapeValue(grantUser), escapeValue(host))
 
 		_, err := db.GetDB().Exec(sqlQuery)
 		if err != nil {

@@ -2,7 +2,11 @@ package db
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
+	"os"
+	"path/filepath"
+	"strings"
 	"sync"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -15,11 +19,44 @@ var (
 )
 
 type Config struct {
-	Host     string
-	Port     int
-	User     string
-	Password string
-	Database string
+	Host     string `json:"host"`
+	Port     int    `json:"port"`
+	User     string `json:"user"`
+	Password string `json:"password"`
+	Database string `json:"database"`
+}
+
+func getConfigPath() string {
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		homeDir = "."
+	}
+	return filepath.Join(homeDir, ".mysqlctl_config.json")
+}
+
+func SaveConfig() error {
+	mu.RLock()
+	defer mu.RUnlock()
+	if config == nil {
+		return nil
+	}
+	data, err := json.MarshalIndent(config, "", "  ")
+	if err != nil {
+		return err
+	}
+	return os.WriteFile(getConfigPath(), data, 0600)
+}
+
+func LoadConfig() (*Config, error) {
+	data, err := os.ReadFile(getConfigPath())
+	if err != nil {
+		return nil, err
+	}
+	var cfg Config
+	if err := json.Unmarshal(data, &cfg); err != nil {
+		return nil, err
+	}
+	return &cfg, nil
 }
 
 func IsConnected() bool {
@@ -57,7 +94,7 @@ func Connect(host string, port int, user, password, database string) error {
 	}
 
 	if database != "" {
-		if _, err := conn.Exec(fmt.Sprintf("USE `%s`", database)); err != nil {
+		if _, err := conn.Exec(fmt.Sprintf("USE %s", escapeIdentifier(database))); err != nil {
 			conn.Close()
 			return fmt.Errorf("failed to use database: %w", err)
 		}
@@ -95,4 +132,16 @@ func GetStatus() (connected bool, dbName string) {
 		return true, config.Database
 	}
 	return false, ""
+}
+
+func SetCurrentDatabase(database string) {
+	mu.Lock()
+	defer mu.Unlock()
+	if config != nil {
+		config.Database = database
+	}
+}
+
+func escapeIdentifier(name string) string {
+	return "`" + strings.ReplaceAll(name, "`", "``") + "`"
 }
