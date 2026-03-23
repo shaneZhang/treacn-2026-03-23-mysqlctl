@@ -13,6 +13,15 @@ var StatusCmd = &cobra.Command{
 	Short: "Show connection status",
 	Long:  `Display the current MySQL connection status.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
+		// Try to reconnect if not connected
+		if !db.IsConnected() {
+			err := db.ConnectWithSavedConfig()
+			if err != nil {
+				fmt.Println("Connection Status: Not connected")
+				return nil
+			}
+		}
+
 		connected, dbName := db.GetStatus()
 		if connected {
 			cfg := db.GetConfig()

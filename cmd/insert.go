@@ -27,6 +27,11 @@ var InsertCmd = &cobra.Command{
 			return fmt.Errorf("table name is required (use --table)")
 		}
 
+		// Validate table name to prevent SQL injection
+		if !isValidIdentifier(insertTable) {
+			return fmt.Errorf("invalid table name: contains potentially dangerous characters")
+		}
+
 		var sqlQuery string
 		if insertSet != "" {
 			sqlQuery = fmt.Sprintf("INSERT INTO `%s` SET %s", insertTable, insertSet)

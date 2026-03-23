@@ -18,7 +18,14 @@ var QueryCmd = &cobra.Command{
 			return nil
 		}
 
-		sqlQuery := args[0]
+		// Join all arguments to form the complete SQL query
+		sqlQuery := ""
+		for i, arg := range args {
+			if i > 0 {
+				sqlQuery += " "
+			}
+			sqlQuery += arg
+		}
 		rows, err := db.GetDB().Query(sqlQuery)
 		if err != nil {
 			return fmt.Errorf("query failed: %w", err)

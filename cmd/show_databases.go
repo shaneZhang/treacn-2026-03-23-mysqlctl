@@ -33,6 +33,10 @@ var ShowDatabasesCmd = &cobra.Command{
 			}
 			fmt.Println(dbName)
 		}
+		// Check for errors from iterating over rows
+		if err := rows.Err(); err != nil {
+			return fmt.Errorf("error iterating over databases: %w", err)
+		}
 		return nil
 	},
 }

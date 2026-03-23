@@ -31,6 +31,11 @@ var UpdateCmd = &cobra.Command{
 			return fmt.Errorf("set clause is required (use --set)")
 		}
 
+		// Validate table name to prevent SQL injection
+		if !isValidIdentifier(updateTable) {
+			return fmt.Errorf("invalid table name: contains potentially dangerous characters")
+		}
+
 		sqlQuery := fmt.Sprintf("UPDATE `%s` SET %s", updateTable, updateSet)
 
 		if updateWhere != "" {

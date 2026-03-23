@@ -24,6 +24,9 @@ var UseDatabaseCmd = &cobra.Command{
 			return fmt.Errorf("failed to use database: %w", err)
 		}
 
+		// Update the config to reflect the new database
+		db.UpdateDatabase(dbName)
+
 		fmt.Printf("Switched to database: %s\n", dbName)
 		return nil
 	},

@@ -9,11 +9,11 @@ import (
 )
 
 var (
-	grantUser   string
-	grantHost   string
-	grantPriv   string
+	grantUser     string
+	grantHost     string
+	grantPriv     string
 	grantDatabase string
-	grantTable  string
+	grantTable    string
 )
 
 var GrantCmd = &cobra.Command{
@@ -31,15 +31,44 @@ var GrantCmd = &cobra.Command{
 		if grantPriv == "" {
 			return fmt.Errorf("privileges are required (use --privileges)")
 		}
+		// Validate that database is specified when using --table flag
+		if grantTable != "" && grantDatabase == "" {
+			return fmt.Errorf("--database is required when using --table flag")
+		}
 
 		host := grantHost
 		if host == "" {
 			host = "%"
 		}
 
+		// Validate identifiers to prevent SQL injection
+		if !isValidIdentifier(grantUser) {
+			return fmt.Errorf("invalid username: contains potentially dangerous characters")
+		}
+		if !isValidHost(host) {
+			return fmt.Errorf("invalid host: contains potentially dangerous characters")
+		}
+		if !isValidPrivilege(grantPriv) {
+			return fmt.Errorf("invalid privileges: contains potentially dangerous characters")
+		}
+
 		target := grantDatabase
 		if grantTable != "" {
-			target = fmt.Sprintf("%s.%s", grantDatabase, grantTable)
+			// Validate database and table names
+			if !isValidIdentifier(grantDatabase) {
+				return fmt.Errorf("invalid database name: contains potentially dangerous characters")
+			}
+			if !isValidIdentifier(grantTable) {
+				return fmt.Errorf("invalid table name: contains potentially dangerous characters")
+			}
+			target = fmt.Sprintf("`%s`.`%s`", grantDatabase, grantTable)
+		} else if grantDatabase != "" && grantDatabase != "*" {
+			if !isValidIdentifier(grantDatabase) {
+				return fmt.Errorf("invalid database name: contains potentially dangerous characters")
+			}
+			target = fmt.Sprintf("`%s`.*", grantDatabase)
+		} else {
+			target = "*.*"
 		}
 
 		sqlQuery := fmt.Sprintf("GRANT %s ON %s TO '%s'@'%s'",
@@ -62,7 +91,7 @@ var GrantCmd = &cobra.Command{
 
 func init() {
 	GrantCmd.Flags().StringVarP(&grantUser, "user", "u", "", "Username (required)")
-	GrantCmd.Flags().StringVarP(&grantHost, "host", "h", "%", "User host (default: %)")
+	GrantCmd.Flags().StringVar(&grantHost, "host", "%", "User host (default: %)")
 	GrantCmd.Flags().StringVarP(&grantPriv, "privileges", "p", "", "Privileges: SELECT, INSERT, UPDATE, DELETE, ALL, etc. (required)")
 	GrantCmd.Flags().StringVarP(&grantDatabase, "database", "d", "*", "Database name")
 	GrantCmd.Flags().StringVarP(&grantTable, "table", "t", "", "Table name (optional, if not specified applies to entire database)")

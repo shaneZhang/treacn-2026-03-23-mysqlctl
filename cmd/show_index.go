@@ -19,6 +19,10 @@ var ShowIndexCmd = &cobra.Command{
 		}
 
 		tableName := args[0]
+		// Validate table name to prevent SQL injection
+		if !isValidIdentifier(tableName) {
+			return fmt.Errorf("invalid table name: contains potentially dangerous characters")
+		}
 		rows, err := db.GetDB().Query(fmt.Sprintf("SHOW INDEX FROM `%s`", tableName))
 		if err != nil {
 			return fmt.Errorf("failed to show indexes: %w", err)

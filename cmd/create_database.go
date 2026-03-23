@@ -24,6 +24,11 @@ var CreateDatabaseCmd = &cobra.Command{
 			return fmt.Errorf("failed to create database: %w", err)
 		}
 
+		// Update the config to use the newly created database
+		db.UpdateDatabase(dbName)
+		// Execute USE statement to switch to the new database
+		_, _ = db.GetDB().Exec(fmt.Sprintf("USE `%s`", dbName))
+
 		fmt.Printf("Database '%s' created successfully\n", dbName)
 		return nil
 	},
