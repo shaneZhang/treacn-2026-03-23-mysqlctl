@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/spf13/cobra"
 
@@ -18,7 +19,7 @@ var QueryCmd = &cobra.Command{
 			return nil
 		}
 
-		sqlQuery := args[0]
+		sqlQuery := strings.Join(args, " ")
 		rows, err := db.GetDB().Query(sqlQuery)
 		if err != nil {
 			return fmt.Errorf("query failed: %w", err)

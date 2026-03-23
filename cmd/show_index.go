@@ -19,7 +19,7 @@ var ShowIndexCmd = &cobra.Command{
 		}
 
 		tableName := args[0]
-		rows, err := db.GetDB().Query(fmt.Sprintf("SHOW INDEX FROM `%s`", tableName))
+		rows, err := db.GetDB().Query(fmt.Sprintf("SHOW INDEX FROM %s", escapeIdentifier(tableName)))
 		if err != nil {
 			return fmt.Errorf("failed to show indexes: %w", err)
 		}

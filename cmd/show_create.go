@@ -19,7 +19,7 @@ var ShowCreateCmd = &cobra.Command{
 		}
 
 		tableName := args[0]
-		rows, err := db.GetDB().Query(fmt.Sprintf("SHOW CREATE TABLE `%s`", tableName))
+		rows, err := db.GetDB().Query(fmt.Sprintf("SHOW CREATE TABLE %s", escapeIdentifier(tableName)))
 		if err != nil {
 			return fmt.Errorf("failed to show create table: %w", err)
 		}

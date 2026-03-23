@@ -38,11 +38,11 @@ var CreateIndexCmd = &cobra.Command{
 
 		var sqlQuery string
 		if createIndexUnique {
-			sqlQuery = fmt.Sprintf("CREATE UNIQUE INDEX `%s` ON `%s` (%s)",
-				indexName, createIndexTable, createIndexCols)
+			sqlQuery = fmt.Sprintf("CREATE UNIQUE INDEX %s ON %s (%s)",
+				escapeIdentifier(indexName), escapeIdentifier(createIndexTable), createIndexCols)
 		} else {
-			sqlQuery = fmt.Sprintf("CREATE INDEX `%s` ON `%s` (%s)",
-				indexName, createIndexTable, createIndexCols)
+			sqlQuery = fmt.Sprintf("CREATE INDEX %s ON %s (%s)",
+				escapeIdentifier(indexName), escapeIdentifier(createIndexTable), createIndexCols)
 		}
 
 		_, err := db.GetDB().Exec(sqlQuery)

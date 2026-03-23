@@ -33,6 +33,9 @@ var ShowTablesCmd = &cobra.Command{
 			}
 			fmt.Println(tableName)
 		}
+		if err := rows.Err(); err != nil {
+			return fmt.Errorf("error iterating tables: %w", err)
+		}
 		return nil
 	},
 }

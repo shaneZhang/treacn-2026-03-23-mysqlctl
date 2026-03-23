@@ -19,9 +19,14 @@ var DropDatabaseCmd = &cobra.Command{
 		}
 
 		dbName := args[0]
-		_, err := db.GetDB().Exec(fmt.Sprintf("DROP DATABASE `%s`", dbName))
+		_, err := db.GetDB().Exec(fmt.Sprintf("DROP DATABASE %s", escapeIdentifier(dbName)))
 		if err != nil {
 			return fmt.Errorf("failed to drop database: %w", err)
+		}
+
+		cfg := db.GetConfig()
+		if cfg != nil && cfg.Database == dbName {
+			db.SetCurrentDatabase("")
 		}
 
 		fmt.Printf("Database '%s' dropped successfully\n", dbName)
