@@ -30,7 +30,7 @@ var DeleteCmd = &cobra.Command{
 			return fmt.Errorf("where clause is required (use --where)")
 		}
 
-		sqlQuery := fmt.Sprintf("DELETE FROM `%s` WHERE %s", deleteTable, deleteWhere)
+		sqlQuery := fmt.Sprintf("DELETE FROM %s WHERE %s", escapeIdentifier(deleteTable), deleteWhere)
 
 		result, err := db.GetDB().Exec(sqlQuery)
 		if err != nil {

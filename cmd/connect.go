@@ -43,7 +43,7 @@ var ConnectCmd = &cobra.Command{
 }
 
 func init() {
-	ConnectCmd.Flags().StringVarP(&connectHost, "host", "h", "localhost", "MySQL server host")
+	ConnectCmd.Flags().StringVarP(&connectHost, "host", "H", "localhost", "MySQL server host")
 	ConnectCmd.Flags().IntVarP(&connectPort, "port", "P", 3306, "MySQL server port")
 	ConnectCmd.Flags().StringVarP(&connectUser, "user", "u", "root", "MySQL username")
 	ConnectCmd.Flags().StringVarP(&connectPassword, "password", "p", "", "MySQL password")

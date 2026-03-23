@@ -13,8 +13,10 @@ var DisconnectCmd = &cobra.Command{
 	Short: "Disconnect from MySQL server",
 	Long:  `Close the current MySQL connection.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		if !db.IsConnected() {
-			return fmt.Errorf("not connected to any MySQL server")
+		connected := db.IsConnected()
+		if !connected {
+			_ = db.LoadAndConnect()
+			connected = db.IsConnected()
 		}
 
 		err := db.Disconnect()

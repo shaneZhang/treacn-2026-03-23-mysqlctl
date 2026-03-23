@@ -9,6 +9,14 @@ import (
 	"mysqlctl/internal/db"
 )
 
+func escapeIdentifier(name string) string {
+	return "`" + strings.ReplaceAll(name, "`", "``") + "`"
+}
+
+func escapeValue(value string) string {
+	return "'" + strings.ReplaceAll(value, "'", "''") + "'"
+}
+
 func printResult(rows *sql.Rows) {
 	if rows == nil {
 		return
@@ -52,8 +60,10 @@ func printResult(rows *sql.Rows) {
 
 func checkConnection() bool {
 	if !db.IsConnected() {
-		fmt.Println("Not connected to MySQL. Use 'mysqlctl connect' first.")
-		return false
+		if err := db.LoadAndConnect(); err != nil {
+			fmt.Println("Not connected to MySQL. Use 'mysqlctl connect' first.")
+			return false
+		}
 	}
 	return true
 }
