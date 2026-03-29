@@ -62,7 +62,7 @@ var GrantCmd = &cobra.Command{
 
 func init() {
 	GrantCmd.Flags().StringVarP(&grantUser, "user", "u", "", "Username (required)")
-	GrantCmd.Flags().StringVarP(&grantHost, "host", "h", "%", "User host (default: %)")
+	GrantCmd.Flags().StringVarP(&grantHost, "host", "H", "%", "User host (default: %)")
 	GrantCmd.Flags().StringVarP(&grantPriv, "privileges", "p", "", "Privileges: SELECT, INSERT, UPDATE, DELETE, ALL, etc. (required)")
 	GrantCmd.Flags().StringVarP(&grantDatabase, "database", "d", "*", "Database name")
 	GrantCmd.Flags().StringVarP(&grantTable, "table", "t", "", "Table name (optional, if not specified applies to entire database)")

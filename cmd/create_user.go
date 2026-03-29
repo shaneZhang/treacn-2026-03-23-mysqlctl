@@ -49,6 +49,6 @@ var CreateUserCmd = &cobra.Command{
 }
 
 func init() {
-	CreateUserCmd.Flags().StringVarP(&createUserHost, "host", "h", "%", "User host (default: %)")
+	CreateUserCmd.Flags().StringVarP(&createUserHost, "host", "H", "%", "User host (default: %)")
 	CreateUserCmd.Flags().StringVarP(&createUserPassword, "password", "p", "", "User password")
 }
