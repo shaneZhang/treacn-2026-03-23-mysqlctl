@@ -10,8 +10,8 @@ import (
 
 var (
 	createIndexTable  string
-	createIndexName  string
-	createIndexCols  string
+	createIndexName   string
+	createIndexCols   string
 	createIndexUnique bool
 )
 
@@ -59,5 +59,5 @@ func init() {
 	CreateIndexCmd.Flags().StringVarP(&createIndexTable, "table", "t", "", "Table name (required)")
 	CreateIndexCmd.Flags().StringVarP(&createIndexName, "name", "n", "", "Index name (optional, auto-generated if not provided)")
 	CreateIndexCmd.Flags().StringVarP(&createIndexCols, "columns", "c", "", "Column(s): col1, col2, ... (required)")
-	CreateIndexCmd.Flags().BoolVarP(&createIndexUnique, "unique", "u", false, "Create a unique index")
+	CreateIndexCmd.Flags().BoolVar(&createIndexUnique, "unique", false, "Create a unique index")
 }

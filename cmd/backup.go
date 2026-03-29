@@ -71,6 +71,6 @@ var BackupCmd = &cobra.Command{
 }
 
 func init() {
-	BackupCmd.Flags().StringVarP(&backupDatabase, "database", "d", "", "Database name to backup")
+	BackupCmd.Flags().StringVar(&backupDatabase, "backup-database", "", "Database name to backup")
 	BackupCmd.Flags().StringVarP(&backupOutput, "output", "o", "", "Output file path")
 }
