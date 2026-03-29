@@ -31,7 +31,8 @@ func SaveConfigToFile(cfg *Config) error {
 		return fmt.Errorf("failed to marshal config: %w", err)
 	}
 
-	return os.WriteFile(configPath, data, 0644)
+	// 使用 0600 权限，只允许文件所有者读写
+	return os.WriteFile(configPath, data, 0600)
 }
 
 // LoadConfigFromFile 从文件加载连接配置

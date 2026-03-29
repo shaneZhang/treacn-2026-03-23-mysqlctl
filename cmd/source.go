@@ -34,7 +34,12 @@ var SourceCmd = &cobra.Command{
 		}
 		defer file.Close()
 
+		// 使用更大的缓冲区来处理大文件
+		const maxCapacity = 10 * 1024 * 1024 // 10MB
 		scanner := bufio.NewScanner(file)
+		buf := make([]byte, maxCapacity)
+		scanner.Buffer(buf, maxCapacity)
+
 		var statements []string
 		var currentStatement strings.Builder
 
