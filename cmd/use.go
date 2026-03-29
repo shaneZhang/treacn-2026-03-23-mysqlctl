@@ -24,6 +24,13 @@ var UseDatabaseCmd = &cobra.Command{
 			return fmt.Errorf("failed to use database: %w", err)
 		}
 
+		// 更新配置文件中的数据库
+		cfg, _ := db.LoadConfigFromFile()
+		if cfg != nil {
+			cfg.Database = dbName
+			db.SaveConfigToFile(cfg)
+		}
+
 		fmt.Printf("Switched to database: %s\n", dbName)
 		return nil
 	},
