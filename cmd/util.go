@@ -21,7 +21,8 @@ func printResult(rows *sql.Rows) {
 		return
 	}
 
-	values := make([]interface{}, len(columns))
+	// 使用 sql.RawBytes 来接收数据
+	values := make([]sql.RawBytes, len(columns))
 	valuePtrs := make([]interface{}, len(columns))
 	for i := range values {
 		valuePtrs[i] = &values[i]
@@ -43,7 +44,7 @@ func printResult(rows *sql.Rows) {
 			if v == nil {
 				fmt.Print("NULL")
 			} else {
-				fmt.Print(v)
+				fmt.Print(string(v))
 			}
 		}
 		fmt.Println()
@@ -52,8 +53,11 @@ func printResult(rows *sql.Rows) {
 
 func checkConnection() bool {
 	if !db.IsConnected() {
-		fmt.Println("Not connected to MySQL. Use 'mysqlctl connect' first.")
-		return false
+		// 尝试从配置文件自动连接
+		if err := db.AutoConnect(); err != nil {
+			fmt.Println("Not connected to MySQL. Use 'mysqlctl connect' first.")
+			return false
+		}
 	}
 	return true
 }

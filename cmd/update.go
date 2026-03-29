@@ -31,6 +31,11 @@ var UpdateCmd = &cobra.Command{
 			return fmt.Errorf("set clause is required (use --set)")
 		}
 
+		// 安全检查：必须有 WHERE 条件
+		if updateWhere == "" {
+			return fmt.Errorf("WHERE condition is required to prevent updating all rows. Use --where \"1=1\" if you really want to update all rows")
+		}
+
 		sqlQuery := fmt.Sprintf("UPDATE `%s` SET %s", updateTable, updateSet)
 
 		if updateWhere != "" {

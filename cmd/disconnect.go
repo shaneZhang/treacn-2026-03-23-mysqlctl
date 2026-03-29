@@ -13,13 +13,9 @@ var DisconnectCmd = &cobra.Command{
 	Short: "Disconnect from MySQL server",
 	Long:  `Close the current MySQL connection.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		if !db.IsConnected() {
-			return fmt.Errorf("not connected to any MySQL server")
-		}
-
-		err := db.Disconnect()
-		if err != nil {
-			return fmt.Errorf("failed to disconnect: %w", err)
+		// 清除配置文件
+		if err := db.ClearConfigFile(); err != nil {
+			return fmt.Errorf("failed to clear config: %w", err)
 		}
 
 		fmt.Println("Successfully disconnected from MySQL")
