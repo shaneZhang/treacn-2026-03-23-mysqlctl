@@ -43,7 +43,12 @@ func printResult(rows *sql.Rows) {
 			if v == nil {
 				fmt.Print("NULL")
 			} else {
-				fmt.Print(v)
+				switch val := v.(type) {
+				case []byte:
+					fmt.Print(string(val))
+				default:
+					fmt.Print(v)
+				}
 			}
 		}
 		fmt.Println()

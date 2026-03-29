@@ -9,11 +9,11 @@ import (
 )
 
 var (
-	grantUser   string
-	grantHost   string
-	grantPriv   string
+	grantUser     string
+	grantHost     string
+	grantPriv     string
 	grantDatabase string
-	grantTable  string
+	grantTable    string
 )
 
 var GrantCmd = &cobra.Command{
@@ -38,8 +38,12 @@ var GrantCmd = &cobra.Command{
 		}
 
 		target := grantDatabase
-		if grantTable != "" {
+		if target == "*" {
+			target = "*.*"
+		} else if grantTable != "" {
 			target = fmt.Sprintf("%s.%s", grantDatabase, grantTable)
+		} else {
+			target = fmt.Sprintf("%s.*", grantDatabase)
 		}
 
 		sqlQuery := fmt.Sprintf("GRANT %s ON %s TO '%s'@'%s'",
@@ -61,9 +65,9 @@ var GrantCmd = &cobra.Command{
 }
 
 func init() {
-	GrantCmd.Flags().StringVarP(&grantUser, "user", "u", "", "Username (required)")
-	GrantCmd.Flags().StringVarP(&grantHost, "host", "h", "%", "User host (default: %)")
-	GrantCmd.Flags().StringVarP(&grantPriv, "privileges", "p", "", "Privileges: SELECT, INSERT, UPDATE, DELETE, ALL, etc. (required)")
-	GrantCmd.Flags().StringVarP(&grantDatabase, "database", "d", "*", "Database name")
-	GrantCmd.Flags().StringVarP(&grantTable, "table", "t", "", "Table name (optional, if not specified applies to entire database)")
+	GrantCmd.Flags().StringVar(&grantUser, "grant-user", "", "Username to grant privileges to (required)")
+	GrantCmd.Flags().StringVar(&grantHost, "grant-host", "%", "User host (default: %)")
+	GrantCmd.Flags().StringVar(&grantPriv, "privileges", "", "Privileges: SELECT, INSERT, UPDATE, DELETE, ALL, etc. (required)")
+	GrantCmd.Flags().StringVar(&grantDatabase, "grant-database", "*", "Database name")
+	GrantCmd.Flags().StringVar(&grantTable, "grant-table", "", "Table name (optional, if not specified applies to entire database)")
 }
